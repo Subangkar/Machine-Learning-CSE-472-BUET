@@ -197,5 +197,5 @@ def preprocess_telco(df_orig):
 	df.TotalCharges.replace(to_replace=" ", value="", inplace=True)
 	df.TotalCharges = pd.to_numeric(df.TotalCharges, errors='ignore')
 	df.TotalCharges.fillna(df.TotalCharges.mean(), inplace=True)
-	
+
 	return df
