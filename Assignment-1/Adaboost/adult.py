@@ -100,30 +100,43 @@ def train_test_dataset(df, df_test):
 	return X_train, X_test, y_train, y_test
 
 
-# %%
+def train_test_dataset_adult():
+	df = pd.read_csv('data/adult/adult.data', header=None)
+	df_test = pd.read_csv('data/adult/adult.test', skiprows=1, header=None)
 
-df = pd.read_csv('../data/adult/adult.data', header=None)
-df_test = pd.read_csv('../data/adult/adult.test', skiprows=1, header=None)
+	setup_adult(df)
+	setup_adult(df_test)
 
-df, df_test = dataframes_adult(df, df_test)
+	df_, cols = preprocess_adult(df)
+	df_test_, _ = preprocess_adult(df_test, is_train=False, train_colms=cols)
 
-X_train, X_test, y_train, y_test = train_test_dataset(df, df_test)
+	X_train, y_train = df_.drop(columns=['salary']).to_numpy(), df_['salary'].to_numpy()
+	X_test, y_test = df_test_.drop(columns=['salary']).to_numpy(), df_test_['salary'].to_numpy()
 
-# %%
-from models.decisiontree import DecisionTree
+	return X_train, X_test, y_train, y_test
 
-dtc = DecisionTree()
-dtc.fit(X_train, y_train)
-sn.heatmap(confusion_matrix(y_test, dtc.predict(X_test)), annot=True, annot_kws={"size": 32})
-print(dtc.score(X_test, y_test))
 
-# %%
-D = 1
-K = 15
+if __name__ == '__main__':
+	df = pd.read_csv('../data/adult/adult.data', header=None)
+	df_test = pd.read_csv('../data/adult/adult.test', skiprows=1, header=None)
 
-from models.adaboost import AdaBoost
+	df, df_test = dataframes_adult(df, df_test)
 
-model = AdaBoost(n_estimators=K, base_estimator=DecisionTree(max_depth=1))
-model.fit(X_train, y_train)
-sn.heatmap(confusion_matrix(y_test, model.predict(X_test)), annot=True, annot_kws={"size": 32})
-print(model.score(X_test, y_test))
+	X_train, X_test, y_train, y_test = train_test_dataset(df, df_test)
+
+	from models.decisiontree import DecisionTree
+
+	dtc = DecisionTree()
+	dtc.fit(X_train, y_train)
+	sn.heatmap(confusion_matrix(y_test, dtc.predict(X_test)), annot=True, annot_kws={"size": 32})
+	print(dtc.score(X_test, y_test))
+
+	D = 1
+	K = 15
+
+	from models.adaboost import AdaBoost
+
+	model = AdaBoost(n_estimators=K, base_estimator=DecisionTree(max_depth=1))
+	model.fit(X_train, y_train)
+	sn.heatmap(confusion_matrix(y_test, model.predict(X_test)), annot=True, annot_kws={"size": 32})
+	print(model.score(X_test, y_test))

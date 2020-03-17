@@ -1,26 +1,14 @@
-# Importing libraries
-import numpy as np  # linear algebra
-import pandas as pd  # data processing, CSV file I/O (e.g. pd.read_csv)
-# Input data files are available in the "../input/" directory.
-import os
-import matplotlib.pyplot as plt  # visualization
-# from PIL import Image
-# %matplotlib inline
 import pandas as pd
-import seaborn as sns  # visualization
-import itertools
-import warnings
-
-warnings.filterwarnings("ignore")
-import io
 import plotly.offline as py  # visualization
+from sklearn.model_selection import train_test_split
+
+from utils import countplot
 
 py.init_notebook_mode(connected=True)  # visualization
 import plotly.graph_objs as go  # visualization
-import plotly.tools as tls  # visualization
-import plotly.figure_factory as ff  # visualization
 
-import seaborn as sns
+from models.adaboost import AdaBoost
+from models.decisiontree import DecisionTree
 
 
 # function  for pie plot for customer attrition types
@@ -109,20 +97,14 @@ def histogram(churn, not_churn, column):
 def scatter_matrix(df):
 	df = df.sort_values(by="Churn", ascending=True)
 	classes = df["Churn"].unique().tolist()
-	classes
 
 	class_code = {classes[k]: k for k in range(2)}
-	class_code
 
 	color_vals = [class_code[cl] for cl in df["Churn"]]
-	color_vals
 
 	pl_colorscale = "Portland"
 
-	pl_colorscale
-
 	text = [df.loc[k, "Churn"] for k in range(len(df))]
-	text
 
 	trace = go.Splom(dimensions=[dict(label="tenure",
 	                                  values=df["tenure"]),
@@ -191,11 +173,50 @@ def preprocess_telco(df_orig):
 		df = pd.concat([df, pd.get_dummies(df[c], prefix=c)], axis=1)
 		df.drop(columns=[c], axis=1, inplace=True)
 
-	# %% md
-	# Numeric
-	# %%
 	df.TotalCharges.replace(to_replace=" ", value="", inplace=True)
 	df.TotalCharges = pd.to_numeric(df.TotalCharges, errors='ignore')
 	df.TotalCharges.fillna(df.TotalCharges.mean(), inplace=True)
 
 	return df
+
+
+def train_test_dataset_telco():
+	df = pd.read_csv('data/WA_Fn-UseC_-Telco-Customer-Churn.csv')
+	df.drop(columns=['customerID'], inplace=True)
+	df = preprocess_telco(df_orig=df)
+
+	X, y = df.drop(columns=['Churn']).to_numpy(), df['Churn'].to_numpy()
+	X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+
+	# plt.figure(figsize = (24,20))
+	# sns.heatmap(df.corr())
+
+	return X_train, X_test, y_train, y_test
+
+
+def df_dist_details(df):
+	for c in df.columns:
+		print(c)
+		for v in df['Churn'].unique():
+			print('< ' + str(v) + ' >')
+			print(df[c][df['Churn'] == v].value_counts())
+		print(end='\n\n')
+
+
+if __name__ == '__main__':
+	X_train, X_test, y_train, y_test = train_test_dataset_telco()
+
+	df = pd.read_csv('data/WA_Fn-UseC_-Telco-Customer-Churn.csv')
+
+	target_col = ["Churn"]
+	cat_cols = df.nunique()[df.nunique() < 6].keys().tolist()
+	cat_cols = [x for x in cat_cols if x not in target_col]
+	countplot(df, "Churn", cat_cols[:-4], n_max=4)
+
+	dtc = DecisionTree()
+	dtc.fit(X_train, y_train)
+	print('Decision Tree: ', dtc.score(X_test, y_test))
+
+	model = AdaBoost(n_estimators=15, base_estimator=DecisionTree(max_depth=1))
+	model.fit(X_train, y_train)
+	print('AdaBoost : ', model.score(X_test, y_test))
