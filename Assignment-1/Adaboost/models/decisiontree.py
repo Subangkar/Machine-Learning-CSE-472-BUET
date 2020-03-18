@@ -35,27 +35,31 @@ class DtUtils:
 	"""
 	:returns (information_gain, entropy_left, entropy_right)
 	"""
+
 	@staticmethod
 	def information_gain(x_parent, y_parent, split, entropy_parent=None):
+		if entropy_parent is None:
+			entropy_parent = DtUtils.entropy(y_parent)
+
 		y_child_le = y_parent[x_parent <= split]
 		y_child_gt = y_parent[x_parent > split]
 		N = y_parent.shape[0]
 		N_le = y_child_le.shape[0]
-		if N_le == 0 or N_le == N:
-			return 0
+
+		if N_le == 0:
+			return 0, 0, entropy_parent
+		if N_le == N:
+			return 0, entropy_parent, 0
+
 		p_le = float(N_le) / N
 		p_gt = 1 - p_le
 
 		entropy_child_le = DtUtils.entropy(y_child_le)
 		entropy_child_gt = DtUtils.entropy(y_child_gt)
 
-		if entropy_parent is None:
-			entropy_parent = DtUtils.entropy(y_parent)
+		info_gain = entropy_parent - p_le * entropy_child_le - p_gt * entropy_child_gt
 
-		return entropy_parent - p_le * entropy_child_le - p_gt * entropy_child_gt
-
-	# info_gain = entropy_parent - p_le * entropy_child_le - p_gt * entropy_child_gt
-	# return info_gain, entropy_child_le, entropy_child_gt
+		return info_gain, entropy_child_le, entropy_child_gt
 
 	@staticmethod
 	def find_split(X, y, column, entropy_parent=None):
@@ -67,11 +71,11 @@ class DtUtils:
 		split_values = np.unique((x_values[split_indices] + x_values[split_indices + 1]) / 2)
 		# --------------------------------
 
-		max_ig, split_thresh = max(
-			list(map(lambda split_value: (
-				DtUtils.information_gain(x_values, y_values, split_value, entropy_parent=entropy_parent), split_value),
-			         split_values)))
-		return max_ig, split_thresh
+		(max_ig, entropy_left, entropy_right), split_thresh = max(map(lambda split_value: (
+			DtUtils.information_gain(x_values, y_values, split_value, entropy_parent=entropy_parent), split_value),
+		                                                              split_values), key=lambda v: (v[0][0], v[1]))
+
+		return max_ig, split_thresh, entropy_left, entropy_right
 
 	@staticmethod
 	def split_dataset(X, y, feature, split_thresh):
@@ -111,14 +115,14 @@ class TreeNode:
 
 	def buildtree(self, X, y, depth, max_depth=None):
 		# print(depth, end=' ')
-		self.entropy = DtUtils.entropy(y)
+		# self.entropy = DtUtils.entropy(y)
 		if len(y) == 1 or self.entropy == 0:
 			self.make_terminal_node(X, y)
 			return
 
-		best_feature, max_ig, best_split_thresh = max(
-			list(map(lambda feature: ((feature,) + (DtUtils.find_split(X, y, feature, entropy_parent=self.entropy))),
-			         range(X.shape[1]))),
+		best_feature, max_ig, best_split_thresh, entropy_left, entropy_right = max(
+			map(lambda feature: ((feature,) + (DtUtils.find_split(X, y, column=feature, entropy_parent=self.entropy))),
+			    range(X.shape[1])),
 			key=lambda v: v[1])
 
 		if max_ig <= 0:
@@ -136,6 +140,9 @@ class TreeNode:
 
 		self.left = TreeNode(self.depth + 1, self.max_depth)
 		self.right = TreeNode(self.depth + 1, self.max_depth)
+
+		self.left.entropy = entropy_left
+		self.right.entropy = entropy_right
 
 		self.left.buildtree(X=X_left, y=y_left, depth=depth + 1, max_depth=max_depth)
 		self.right.buildtree(X=X_right, y=y_right, depth=depth + 1, max_depth=max_depth)
@@ -202,6 +209,7 @@ class DecisionTree:
 			N = sample_weight.shape[0]
 			X, y = DtUtils.resample(X, y, N, sample_weight)
 		self.root = TreeNode(max_depth=self.max_depth)
+		self.root.entropy = DtUtils.entropy(y)
 		self.root.buildtree(X=X, y=y, depth=0, max_depth=self.max_depth)
 
 	def predict(self, X):

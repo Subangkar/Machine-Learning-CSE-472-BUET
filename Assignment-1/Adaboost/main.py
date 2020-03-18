@@ -10,7 +10,6 @@ random.seed(1)
 # %%
 from models.adaboost import AdaBoost
 
-
 # %%
 from models.decisiontree import DecisionTree
 
