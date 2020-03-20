@@ -122,8 +122,7 @@ class TreeNode:
 
 		best_feature, max_ig, best_split_thresh, entropy_left, entropy_right = max(
 			map(lambda feature: ((feature,) + (DtUtils.find_split(X, y, column=feature, entropy_parent=self.entropy))),
-			    range(X.shape[1])),
-			key=lambda v: v[1])
+			    range(X.shape[1])), key=lambda v: v[1])
 
 		if max_ig <= 0:
 			self.make_terminal_node(X, y)
@@ -161,27 +160,30 @@ class TreeNode:
 		return np.array(list(map(lambda x: self.predict_val(x), X)))
 
 	@staticmethod
-	def build_dtree(X, y, depth, max_depth=None):
+	def build_dtree(X, y, depth, max_depth=None, entropy=None):
 		node = TreeNode()
-		node.entropy = DtUtils.entropy(y)
+		node.entropy = entropy
+		if node.entropy is None:
+			node.entropy = DtUtils.entropy(y)
 
 		if len(y) == 1 or (max_depth is not None and depth >= max_depth) or node.entropy == 0:
 			return node.make_terminal_node(X, y)
 
-		best_feature, max_ig, best_split_thresh = max(
-			list(map(lambda feature: ((feature,) + (DtUtils.find_split(X, y, feature))), range(X.shape[1]))),
-			key=lambda v: v[1])
+		best_feature, max_ig, best_split_thresh, entropy_left, entropy_right = max(
+			map(lambda feature: ((feature,) + (DtUtils.find_split(X, y, column=feature, entropy_parent=node.entropy))),
+			    range(X.shape[1])), key=lambda v: v[1])
 
 		if max_ig == 0:
 			return node.make_terminal_node(X, y)
 
 		node.feature = best_feature
-		node.split = best_split_thresh
+		node.split_threshold = best_split_thresh
 
 		X_left, X_right, y_left, y_right = DtUtils.split_dataset(X, y, best_feature, best_split_thresh)
 
-		node.left = TreeNode.build_dtree(X=X_left, y=y_left, depth=depth + 1, max_depth=max_depth)
-		node.right = TreeNode.build_dtree(X=X_right, y=y_right, depth=depth + 1, max_depth=max_depth)
+		node.left = TreeNode.build_dtree(X=X_left, y=y_left, depth=depth + 1, max_depth=max_depth, entropy=entropy_left)
+		node.right = TreeNode.build_dtree(X=X_right, y=y_right, depth=depth + 1, max_depth=max_depth,
+		                                  entropy=entropy_right)
 
 		return node
 
@@ -206,8 +208,7 @@ class DecisionTree:
 		X = np.array(X)
 		y = np.array(y)
 		if sample_weight is not None:
-			N = sample_weight.shape[0]
-			X, y = DtUtils.resample(X, y, N, sample_weight)
+			X, y = DtUtils.resample(X, y, k=sample_weight.shape[0], sample_weight=sample_weight)
 		self.root = TreeNode(max_depth=self.max_depth)
 		self.root.entropy = DtUtils.entropy(y)
 		self.root.buildtree(X=X, y=y, depth=0, max_depth=self.max_depth)
