@@ -180,13 +180,13 @@ def preprocess_telco(df_orig):
 	return df
 
 
-def train_test_dataset_telco(project_root='./'):
+def train_test_dataset_telco(project_root='./', random_state=None):
 	df = pd.read_csv(project_root + 'data/WA_Fn-UseC_-Telco-Customer-Churn.csv')
 	df.drop(columns=['customerID'], inplace=True)
 	df = preprocess_telco(df_orig=df)
 
 	X, y = df.drop(columns=['Churn']).to_numpy(), df['Churn'].to_numpy()
-	X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+	X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=random_state)
 
 	# plt.figure(figsize = (24,20))
 	# sns.heatmap(df.corr())

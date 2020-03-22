@@ -9,13 +9,14 @@ from utils import perf_metrics_2X2
 class DtUtils:
 
 	@staticmethod
-	def resample(X, y, k=None, sample_weight=None):
+	def resample(X, y, k=None, sample_weight=None, random_state=None):
 		if X.shape[0] != y.shape[0]:
 			raise Exception('dimension mismatch')
 		if k is None:
 			k = X.size
 		if sample_weight is None:
 			sample_weight = np.full((k, 1), 1 / k)
+		np.random.seed(random_state)
 		choices = np.random.choice(X.shape[0], size=k, p=sample_weight)
 		return X[choices], y[choices]
 
@@ -210,11 +211,12 @@ class DecisionTree:
 
 		self.root = None
 
-	def fit(self, X, y, sample_weight=None):
+	def fit(self, X, y, sample_weight=None, random_state=None):
 		X = np.array(X)
 		y = np.array(y)
 		if sample_weight is not None:
-			X, y = DtUtils.resample(X, y, k=sample_weight.shape[0], sample_weight=sample_weight)
+			X, y = DtUtils.resample(X, y, k=sample_weight.shape[0], sample_weight=sample_weight,
+			                        random_state=random_state)
 		self.root = TreeNode(depth=0, max_depth=self.max_depth)
 		self.root.entropy = DtUtils.entropy(y)
 		self.root.buildtree(X=X, y=y, depth=0, max_depth=self.max_depth)

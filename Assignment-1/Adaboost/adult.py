@@ -100,7 +100,7 @@ def train_test_dataset(df, df_test):
 	return X_train, X_test, y_train, y_test
 
 
-def train_test_dataset_adult(project_root='./'):
+def train_test_dataset_adult(project_root='./', random_state=None):
 	df = pd.read_csv(project_root + 'data/adult/adult.data', header=None)
 	df_test = pd.read_csv(project_root + 'data/adult/adult.test', skiprows=1, header=None)
 

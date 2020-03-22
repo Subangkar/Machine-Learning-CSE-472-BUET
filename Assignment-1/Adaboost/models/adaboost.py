@@ -24,9 +24,10 @@ class AdaBoost:
 		self.estimators = []
 		self.estimator_weights = []
 
-	def fit(self, X, y, eps=1E-12):
+	def fit(self, X, y, eps=1E-12, random_state=None):
 		"""
 		Only for binary classifier
+		:param random_state: seed for random sampling
 		:param X: feature vectors
 		:param y: target vector
 		:param eps: precision to avoid division by 0
@@ -41,7 +42,7 @@ class AdaBoost:
 		print('fitting ' + str(self.n_estimators) + ' models')
 		for k in range(self.n_estimators):
 			estimator = copy.copy(self.classifier)
-			estimator.fit(X, y, sample_weight=W)
+			estimator.fit(X, y, sample_weight=W, random_state=random_state)
 			y_p = estimator.predict(X)
 
 			error = W.dot(y_p != y)  # error = sum(w[j]) if y_p_j != y_j
