@@ -180,8 +180,8 @@ def preprocess_telco(df_orig):
 	return df
 
 
-def train_test_dataset_telco():
-	df = pd.read_csv('data/WA_Fn-UseC_-Telco-Customer-Churn.csv')
+def train_test_dataset_telco(project_root='./'):
+	df = pd.read_csv(project_root + 'data/WA_Fn-UseC_-Telco-Customer-Churn.csv')
 	df.drop(columns=['customerID'], inplace=True)
 	df = preprocess_telco(df_orig=df)
 

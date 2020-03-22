@@ -100,9 +100,9 @@ def train_test_dataset(df, df_test):
 	return X_train, X_test, y_train, y_test
 
 
-def train_test_dataset_adult():
-	df = pd.read_csv('data/adult/adult.data', header=None)
-	df_test = pd.read_csv('data/adult/adult.test', skiprows=1, header=None)
+def train_test_dataset_adult(project_root='./'):
+	df = pd.read_csv(project_root + 'data/adult/adult.data', header=None)
+	df_test = pd.read_csv(project_root + 'data/adult/adult.test', skiprows=1, header=None)
 
 	setup_adult(df)
 	setup_adult(df_test)

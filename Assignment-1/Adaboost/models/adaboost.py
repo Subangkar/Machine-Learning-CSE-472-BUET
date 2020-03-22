@@ -1,9 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.metrics import classification_report
-from sklearn.tree import DecisionTreeClassifier
 from sklearn.preprocessing import OneHotEncoder
 import copy
+
+from models.decisiontree import DecisionTree
+from utils import perf_metrics_2X2
 
 
 class AdaBoost:
@@ -11,7 +12,7 @@ class AdaBoost:
 		if n_estimators is None:
 			n_estimators = 5
 		if base_estimator is None:
-			base_estimator = DecisionTreeClassifier(max_depth=1)
+			base_estimator = DecisionTree(max_depth=1)
 
 		self.n_estimators = n_estimators
 		self.classifier = base_estimator
@@ -36,9 +37,6 @@ class AdaBoost:
 		self.classes = np.unique(y)
 		self.n_classes = self.classes.size
 		self.class_binary_encoded = OneHotEncoder(categories=self.classes, sparse=False)
-
-		# y = copy.copy(y)
-		# y[y == 0] = -1
 
 		print('fitting ' + str(self.n_estimators) + ' models')
 		for k in range(self.n_estimators):
@@ -91,7 +89,8 @@ class AdaBoost:
 		return np.mean(self.predict(X) == y)
 
 	def report(self, X, y):
-		return classification_report(y, self.predict(X), target_names=['class 0', 'class 1'])
+		# return classification_report(np.array(y), self.predict(X), target_names=['class 0', 'class 1'])
+		return perf_metrics_2X2(y_true=np.array(y), y_pred=self.predict(X))
 
 
 if __name__ == '__main__':
@@ -105,7 +104,7 @@ if __name__ == '__main__':
 
 
 	X, Y = get_data()
-	Y[Y == 0] = -1  # make the targets -1,+1
+	# Y[Y == 0] = -1  # make the targets -1,+1
 	Ntrain = int(0.8 * len(X))
 	Xtrain, Ytrain = X[:Ntrain], Y[:Ntrain]
 	Xtest, Ytest = X[Ntrain:], Y[Ntrain:]

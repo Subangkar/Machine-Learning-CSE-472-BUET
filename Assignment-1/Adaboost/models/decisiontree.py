@@ -86,7 +86,7 @@ class DtUtils:
 
 
 class TreeNode:
-	def __init__(self, depth=1, max_depth=None):
+	def __init__(self, depth=0, max_depth=None):
 		self.depth = depth
 		self.max_depth = max_depth
 
@@ -146,7 +146,6 @@ class TreeNode:
 		self.left.buildtree(X=X_left, y=y_left, depth=depth + 1, max_depth=max_depth)
 		self.right.buildtree(X=X_right, y=y_right, depth=depth + 1, max_depth=max_depth)
 
-	# loosely ok
 	def predict_val(self, x):
 		if self.feature is None:
 			return self.prediction
@@ -155,7 +154,6 @@ class TreeNode:
 		else:
 			return self.right.predict_val(x) if self.right is not None else self.prediction[1]
 
-	# using loop
 	def predict(self, X):
 		return np.array(list(map(lambda x: self.predict_val(x), X)))
 
@@ -189,13 +187,21 @@ class TreeNode:
 
 	@staticmethod
 	def print_tree(node, depth):
-		if node.feature is not None:
-			TreeNode.print_tree(node.left, depth + 1)
-			print('     ' * depth + 'X[' + str(node.feature) + ']' + '<=' + '{:.3f}'.format(
-				node.split_threshold) + ' ent=' + '{:.3f}'.format(node.entropy))
-			TreeNode.print_tree(node.right, depth + 1)
+		if node is None:
+			return
+		if node.feature is None:
+			print('     ' * depth + 'y={:d}'.format(node.prediction) + ' ent=' + '{:.3g}'.format(node.entropy))
+		elif node.feature is not None and (node.left is None and node.right is None):
+			print('     ' * depth + '(y={:d})'.format(node.prediction[0]) + ' X[{:2d}]<={:.3g}'.format(
+				node.feature, node.split_threshold) + ' (y={:d})'.format(
+				node.prediction[1]) + ' ent=' + '{:.3g}'.format(
+				node.entropy))
 		else:
-			print('     ' * depth + 'y=' + str(int(node.prediction)) + ' ent=' + '{:.3f}'.format(node.entropy))
+			TreeNode.print_tree(node.left, depth + 1)
+			print('     ' * depth + 'X[{:2d}]<={:.3f}'.format(node.feature,
+			                                                  node.split_threshold) + ' ent=' + '{:.3g}'.format(
+				node.entropy))
+			TreeNode.print_tree(node.right, depth + 1)
 
 
 class DecisionTree:
@@ -209,7 +215,7 @@ class DecisionTree:
 		y = np.array(y)
 		if sample_weight is not None:
 			X, y = DtUtils.resample(X, y, k=sample_weight.shape[0], sample_weight=sample_weight)
-		self.root = TreeNode(max_depth=self.max_depth)
+		self.root = TreeNode(depth=0, max_depth=self.max_depth)
 		self.root.entropy = DtUtils.entropy(y)
 		self.root.buildtree(X=X, y=y, depth=0, max_depth=self.max_depth)
 

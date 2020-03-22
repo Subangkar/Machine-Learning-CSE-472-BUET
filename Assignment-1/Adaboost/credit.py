@@ -5,8 +5,8 @@ import seaborn
 from sklearn.model_selection import train_test_split
 
 
-def train_test_dataset_credit(n_neg_samples=20000):
-	df = pd.read_csv('data/creditcard.csv')
+def train_test_dataset_credit(n_neg_samples=20000, project_root='./'):
+	df = pd.read_csv(project_root + 'data/creditcard.csv')
 	df.drop(columns=['Time'], axis=0, inplace=True)
 	df_pos = df[df.Class == 1].reset_index()
 	df.drop(df[df.Class == 1].index, inplace=True)
