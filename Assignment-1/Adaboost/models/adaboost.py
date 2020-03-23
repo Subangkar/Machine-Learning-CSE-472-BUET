@@ -4,7 +4,7 @@ from sklearn.preprocessing import OneHotEncoder
 import copy
 
 from models.decisiontree import DecisionTree
-from utils import perf_metrics_2X2
+from utils import perf_metrics_2X2, plot_confusion_matrix
 
 
 class AdaBoost:
@@ -92,6 +92,9 @@ class AdaBoost:
 	def report(self, X, y):
 		# return classification_report(np.array(y), self.predict(X), target_names=['class 0', 'class 1'])
 		return perf_metrics_2X2(y_true=np.array(y), y_pred=self.predict(X))
+
+	def plot_cm(self, X, y):
+		plot_confusion_matrix(y_true=y, y_pred=self.predict(X))
 
 
 if __name__ == '__main__':

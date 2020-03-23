@@ -2,8 +2,9 @@
 import numpy as np
 from datetime import datetime
 import collections
+import seaborn as sn
 
-from utils import perf_metrics_2X2
+from utils import perf_metrics_2X2, plot_confusion_matrix
 
 
 class DtUtils:
@@ -231,6 +232,9 @@ class DecisionTree:
 	def report(self, X, y):
 		# return classification_report(np.array(y), self.predict(X), target_names=['class 0', 'class 1'])
 		return perf_metrics_2X2(y_true=np.array(y), y_pred=self.predict(X))
+
+	def plot_cm(self, X, y):
+		plot_confusion_matrix(y_true=y, y_pred=self.predict(X))
 
 	def print_tree(self):
 		TreeNode.print_tree(self.root, depth=0)

@@ -26,6 +26,15 @@ def perf_metrics_2X2(y_true, y_pred):
 	       'Score: {:.2f}\n'.format(recall, true_negative_rate, precision, false_discovery_rate, f1_score)
 
 
+def plot_confusion_matrix(y_true, y_pred):
+	cm = confusion_matrix(y_true, y_pred)
+	sn.set(font_scale=1.4)  # for label size
+	sn.heatmap(cm, annot=True, annot_kws={"size": 16}, fmt='d')
+	plt.xlabel('Actual labels')
+	plt.ylabel('Predicted labels')
+	plt.show()
+
+
 def label_encode(df):
 	df_c = df.copy()
 	for column in df.columns:

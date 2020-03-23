@@ -30,6 +30,7 @@ def run_adaboost(dataset_name, dataset, K=None, random_state=None):
 		en_time = time.time()
 		print(dataset_name, ' AdaBoost x', k, ' Train:', '{:.4f}'.format(model.score(X_train, y_train)),
 		      ' Test:', '{:.4f}'.format(model.score(X_test, y_test)))
+		model.plot_cm(X_test, y_test)
 		print('elaspled time: ', '{:.4f}'.format(en_time - st_time))
 	print(flush=True)
 
@@ -44,6 +45,7 @@ def run_decisionTree(dataset_name, dataset, random_state=None):
 	      ' Test:', '{:.4f}'.format(model.score(X_test, y_test)))
 	print('Train:\n' + model.report(X_train, y_train))
 	print('Test:\n' + model.report(X_test, y_test))
+	model.plot_cm(X_test, y_test)
 	print('elaspled time: ', '{:.4f}'.format(en_time - st_time))
 	print(flush=True)
 
