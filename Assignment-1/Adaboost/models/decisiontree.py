@@ -17,7 +17,8 @@ class DtUtils:
 			k = X.size
 		if sample_weight is None:
 			sample_weight = np.full((k, 1), 1 / k)
-		np.random.seed(random_state)
+		if random_state is not None:
+			np.random.seed(random_state)
 		choices = np.random.choice(X.shape[0], size=k, p=sample_weight)
 		return X[choices], y[choices]
 

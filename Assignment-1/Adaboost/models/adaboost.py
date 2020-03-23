@@ -39,10 +39,13 @@ class AdaBoost:
 		self.n_classes = self.classes.size
 		self.class_binary_encoded = OneHotEncoder(categories=self.classes, sparse=False)
 
+		if random_state is not None:
+			np.random.seed(random_state)
+
 		print('fitting ' + str(self.n_estimators) + ' models')
 		for k in range(self.n_estimators):
 			estimator = copy.copy(self.classifier)
-			estimator.fit(X, y, sample_weight=W, random_state=random_state)
+			estimator.fit(X, y, sample_weight=W, random_state=None)
 			y_p = estimator.predict(X)
 
 			error = W.dot(y_p != y)  # error = sum(w[j]) if y_p_j != y_j
