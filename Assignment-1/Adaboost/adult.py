@@ -6,12 +6,15 @@ import seaborn as sn
 # %%
 from sklearn.metrics import confusion_matrix
 
+from dataframepreprocessor import DataFramePreprocessor
+
 column_labels = ['age', 'workclass', 'fnlwgt', 'education', 'education-num', 'marital-status', 'occupation',
                  'relationship', 'race', 'sex', 'capital - gain', 'capital - loss', 'hours - per - week',
                  'native - country', 'salary']
 
 numeric_colms = ['age', 'fnlwgt', 'education-num', 'capital - gain', 'capital - loss', 'hours - per - week']
 yes_no_colms = ['sex', 'salary']
+yes_no_map = [{'Male': 1, 'Female': 0}, {'>50K': 1, '<=50K': 0}]
 cat_colms = [cat for cat in column_labels[:-1] if cat not in numeric_colms]
 cat_colms = [cat for cat in cat_colms if cat not in yes_no_colms]
 
@@ -100,15 +103,26 @@ def train_test_dataset(df, df_test):
 	return X_train, X_test, y_train, y_test
 
 
-def train_test_dataset_adult():
-	df = pd.read_csv('data/adult/adult.data', header=None)
-	df_test = pd.read_csv('data/adult/adult.test', skiprows=1, header=None)
+def train_test_dataset_adult(project_root='./', random_state=None):
+	df = pd.read_csv(project_root + 'data/adult/adult.data', header=None, names=column_labels)
+	df_test = pd.read_csv(project_root + 'data/adult/adult.test', skiprows=1, header=None, names=column_labels)
 
-	setup_adult(df)
-	setup_adult(df_test)
+	pr = DataFramePreprocessor(df_train=df)
 
-	df_, cols = preprocess_adult(df)
-	df_test_, _ = preprocess_adult(df_test, is_train=False, train_colms=cols)
+	df_ = pr.preprocess_train(df,
+	                          bin_cat_colms=yes_no_colms,
+	                          bin_replace_map=[{'Male': 1, 'Female': 0}, {'>50K': 1, '<=50K': 0}],
+	                          num_colms=numeric_colms,
+	                          mul_cat_colms=cat_colms,
+	                          num_na_symbol='?')
+
+	df_test_ = pr.preprocess_test(df_test,
+	                              bin_cat_colms=yes_no_colms,
+	                              bin_replace_map=[{'Male': 1, 'Female': 0}, {'>50K.': 1, '<=50K.': 0}],
+	                              num_colms=numeric_colms,
+	                              mul_cat_colms=cat_colms,
+	                              num_na_symbol='?')
+
 
 	X_train, y_train = df_.drop(columns=['salary']).to_numpy(), df_['salary'].to_numpy()
 	X_test, y_test = df_test_.drop(columns=['salary']).to_numpy(), df_test_['salary'].to_numpy()
