@@ -1,8 +1,8 @@
 # %%
-import numpy as np
-from datetime import datetime
 import collections
-import seaborn as sn
+from datetime import datetime
+
+import numpy as np
 
 from utils import perf_metrics_2X2, plot_confusion_matrix
 
@@ -159,34 +159,6 @@ class TreeNode:
 
 	def predict(self, X):
 		return np.array(list(map(lambda x: self.predict_val(x), X)))
-
-	@staticmethod
-	def build_dtree(X, y, depth, max_depth=None, entropy=None):
-		node = TreeNode()
-		node.entropy = entropy
-		if node.entropy is None:
-			node.entropy = DtUtils.entropy(y)
-
-		if len(y) == 1 or (max_depth is not None and depth >= max_depth) or node.entropy == 0:
-			return node.make_terminal_node(X, y)
-
-		best_feature, max_ig, best_split_thresh, entropy_left, entropy_right = max(
-			map(lambda feature: ((feature,) + (DtUtils.find_split(X, y, column=feature, entropy_parent=node.entropy))),
-			    range(X.shape[1])), key=lambda v: v[1])
-
-		if max_ig == 0:
-			return node.make_terminal_node(X, y)
-
-		node.feature = best_feature
-		node.split_threshold = best_split_thresh
-
-		X_left, X_right, y_left, y_right = DtUtils.split_dataset(X, y, best_feature, best_split_thresh)
-
-		node.left = TreeNode.build_dtree(X=X_left, y=y_left, depth=depth + 1, max_depth=max_depth, entropy=entropy_left)
-		node.right = TreeNode.build_dtree(X=X_right, y=y_right, depth=depth + 1, max_depth=max_depth,
-		                                  entropy=entropy_right)
-
-		return node
 
 	@staticmethod
 	def print_tree(node, depth):

@@ -1,11 +1,12 @@
 import pandas as pd
 import plotly.offline as py  # visualization
+import plotly.graph_objs as go  # visualization
 from sklearn.model_selection import train_test_split
 
+from dataframepreprocessor import DataFramePreprocessor
 from utils import countplot
 
 py.init_notebook_mode(connected=True)  # visualization
-import plotly.graph_objs as go  # visualization
 
 from models.adaboost import AdaBoost
 from models.decisiontree import DecisionTree
@@ -182,8 +183,28 @@ def preprocess_telco(df_orig):
 
 def train_test_dataset_telco(project_root='./', random_state=None):
 	df = pd.read_csv(project_root + 'data/WA_Fn-UseC_-Telco-Customer-Churn.csv')
-	df.drop(columns=['customerID'], inplace=True)
-	df = preprocess_telco(df_orig=df)
+
+	no_int_colms = ['OnlineSecurity', 'OnlineBackup', 'DeviceProtection',
+	                'TechSupport', 'StreamingTV', 'StreamingMovies']
+
+	for c in no_int_colms:
+		df[c].replace(to_replace='No internet service', value='No', inplace=True)
+	df['MultipleLines'].replace(to_replace='No phone service', value='No', inplace=True)
+
+	yes_no_colms = ['Partner', 'Dependents', 'PhoneService', 'MultipleLines'] \
+	               + no_int_colms + ['PaperlessBilling', 'Churn']
+
+	mult_val_colms = ['InternetService', 'Contract', 'PaymentMethod']
+
+	num_colms = ['TotalCharges']
+	df = DataFramePreprocessor(df_train=df).preprocess(df,
+	                                                   drop_colms=['customerID'],
+	                                                   mul_cat_colms=mult_val_colms,
+	                                                   num_colms=num_colms,
+	                                                   target_colm='Churn',
+	                                                   bin_cat_colms=yes_no_colms + ['gender'],
+	                                                   bin_replace_map=[{'Yes': 1, 'No': 0}] * len(yes_no_colms) + [
+		                                                   {'Male': 1, 'Female': 0}])
 
 	X, y = df.drop(columns=['Churn']).to_numpy(), df['Churn'].to_numpy()
 	X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=random_state)

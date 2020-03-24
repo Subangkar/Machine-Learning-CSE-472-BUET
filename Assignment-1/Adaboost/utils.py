@@ -43,12 +43,6 @@ def label_encode(df):
 	return df_c
 
 
-def trim_ws(df):
-	for c in df.columns:
-		df[c] = df[c].astype(str).str.strip()
-	return df
-
-
 def countplot(df, target, bases, n_max):
 	import math
 	i = 1
