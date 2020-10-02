@@ -1,0 +1,4 @@
+**/data/**/ filter=lfs diff=lfs merge=lfs -text
+
+*.xml filter=lfs diff=lfs merge=lfs -text
+Assignment-2/TextClassification/data/topics.txt filter=lfs diff=lfs merge=lfs -text
