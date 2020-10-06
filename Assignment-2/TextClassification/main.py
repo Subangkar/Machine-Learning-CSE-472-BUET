@@ -1,3 +1,4 @@
+# %%
 import nltk
 
 nltk.download('punkt')
@@ -5,7 +6,6 @@ nltk.download('stopwords')
 nltk.download('wordnet')
 
 # %%
-from dataset import generate_dataset
 from utils import tf_idf
 
 # %%
@@ -32,30 +32,36 @@ class TextClassifier:
     def evaluationStats(self, X_train=None, y_train=None, X_valid=None, y_valid=None, X_test=None, y_test=None):
         model = self.model
         if X_train is not None and y_train is not None:
-            print(model.score(X_train, y_train))
-            print("Number of mislabeled samples out of a total %d samples in Train: %d"
-                  % (X_train.shape[0], (y_train != model.predict(X_train)).sum()))
+            print('Train:', model.score(X_train, y_train))
+            # print("Number of mislabeled samples out of a total %d samples in Train: %d"
+            #       % (X_train.shape[0], (y_train != model.predict(X_train)).sum()))
 
         if X_valid is not None and y_valid is not None:
-            print(model.score(X_valid, y_valid))
-            print("Number of mislabeled samples out of a total %d samples in Validation: %d"
-                  % (X_valid.shape[0], (y_valid != model.predict(X_valid)).sum()))
+            print('Validation:', model.score(X_valid, y_valid))
+            # print("Number of mislabeled samples out of a total %d samples in Validation: %d"
+            #       % (X_valid.shape[0], (y_valid != model.predict(X_valid)).sum()))
 
         if X_test is not None and y_test is not None:
-            print(model.score(X_test, y_test))
-            print("Number of mislabeled samples out of a total %d samples in Test: %d"
-                  % (X_test.shape[0], (y_test != model.predict(X_test)).sum()))
+            print('Test:', model.score(X_test, y_test))
+            # print("Number of mislabeled samples out of a total %d samples in Test: %d"
+            #       % (X_test.shape[0], (y_test != model.predict(X_test)).sum()))
 
 
 # %%
-X_train, X_valid, X_test, y_train, y_valid, y_test, mapping = generate_dataset(valid_size=200)
+from dataset import TextDataSet
+
+textds = TextDataSet(data_path='data/')
+X_train, X_valid, X_test, y_train, y_valid, y_test = textds.generate_text_dataset(train_size=500, valid_size=200,
+                                                                                  test_size=500)
 
 print(X_train.shape, y_train.shape)
 print(X_valid.shape, y_valid.shape)
 print(X_test.shape, y_test.shape)
 
+# print(textds.embedding_from_text(['I love coffee']).shape)
+
 # %%
-nb = NaiveBayes(smoothing_factor=1e-3)  # GaussianNB()
+nb = NaiveBayes(smoothing_factor=1e-3)
 clf = TextClassifier(nb)
 clf.fit(X_train, y_train)
 clf.evaluationStats(X_train=X_train, y_train=y_train, X_valid=X_valid, y_valid=y_valid, X_test=X_test, y_test=y_test)

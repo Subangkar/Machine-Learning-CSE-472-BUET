@@ -2,86 +2,87 @@ from utils import *
 from sklearn.preprocessing import LabelEncoder
 
 
-def generate_dataset(data_path='data/', train_size=500, valid_size=200, test_size=500):
-    stem_set = set()
-    stem_to_idx_map = dict()
-    idx_to_stem_map = dict()
+class TextDataSet:
+    def __init__(self, data_path='data/'):
+        self.data_path = data_path
+        self.stem_to_idx_map = None
+        self.idx_to_stem_map = None
+        self.le = LabelEncoder()
+        self.mapping = None
 
-    train_set_word_X, valid_set_word_X, test_set_word_X = [], [], []
+    def generate_text_dataset(self, train_size=500, valid_size=200, test_size=500, return_text=False):
+        stem_set = set()
 
-    train_set_stem_X, valid_set_stem_X, test_set_stem_X = [], [], []
+        train_set_line, valid_set_line, test_set_line = [], [], []
+        train_label, valid_label, test_label = [], [], []
 
-    train_label, valid_label, test_label = [], [], []
-    X_train, X_valid, X_test = None, None, None
-    y_train, y_valid, y_test = None, None, None
+        with open(self.data_path + 'topics.txt', 'r', encoding='utf-8') as file:
+            topics = [t.strip() for t in file.readlines()]
 
-    with open(data_path + 'topics.txt', 'r', encoding='utf-8') as file:
-        topics = [t.strip() for t in file.readlines()]
+            for topic in topics:
+                if topic == '3d_Printer':
+                    continue
 
-        for topic in topics:
+                with open(self.data_path + 'Training/%s.xml' % topic, 'r', encoding='utf-8') as file:
+                    content = file.read()
 
-            if topic == '3d_Printer':
-                continue
+                    texts = get_text_list_from_xml(content, n=None, remove_links=True)
 
-            with open(data_path + 'Training/%s.xml' % topic, 'r', encoding='utf-8') as file:
-                content = file.read()
+                    lines = []
+                    labels = []
+                    for line in texts:
+                        stem = get_stem_tokens(line)
+                        if len(stem) > 0:
+                            lines.append(line)
+                            labels.append(topic)
 
-                texts = get_text_list_from_xml(content, n=train_size + valid_size + test_size, remove_links=True)
+                        if len(labels) >= train_size + valid_size + test_size:
+                            break
 
-                # train_set_word_X.extend(texts[:train_size])
-                # train_label.extend([topic] * train_size)
-                # valid_set_word_X.extend(texts[train_size: train_size+valid_size])
-                # valid_label.extend([topic] * valid_size)
-                # test_set_word_X.extend(texts[train_size+valid_size: train_size+valid_size+test_size])
-                # test_label.extend([topic] * test_size)
+                    train_set_line.extend(lines[:train_size])
+                    valid_set_line.extend(lines[train_size:train_size + valid_size])
+                    test_set_line.extend(lines[train_size + valid_size:train_size + valid_size + test_size])
 
-                for line in texts[:train_size]:
-                    stem = get_stem_tokens(line)
-                    stem_set.update(stem)
+                    train_label.extend(labels[:train_size])
+                    valid_label.extend(labels[train_size:train_size + valid_size])
+                    test_label.extend(labels[train_size + valid_size:train_size + valid_size + test_size])
 
-                    if len(stem) > 0:
-                        train_set_word_X.append(line)
-                        train_set_stem_X.append(stem)
-                        train_label.append(topic)
+                    for line in train_set_line:
+                        stem_set.update(get_stem_tokens(line))
+                    for line in valid_set_line:
+                        stem_set.update(get_stem_tokens(line))
 
-                for line in texts[train_size: train_size + valid_size]:
-                    stem = get_stem_tokens(line)
-                    stem_set.update(stem)
+        self.stem_to_idx_map = {stem: i for i, stem in enumerate(stem_set)}
+        self.idx_to_stem_map = {i: stem for stem, i in self.stem_to_idx_map.items()}
 
-                    if len(stem) > 0:
-                        valid_set_word_X.append(line)
-                        valid_set_stem_X.append(stem)
-                        valid_label.append(topic)
+        self.le.fit(train_label)
+        self.mapping = dict(zip(self.le.classes_, range(len(self.le.classes_))))
 
-                for line in texts[train_size + valid_size: train_size + valid_size + test_size]:
-                    stem = get_stem_tokens(line)
-                    # stem_set.update(stem)
+        assert (len(train_set_line) == len(train_label))
+        assert (len(valid_set_line) == len(valid_label))
+        assert (len(test_set_line) == len(test_label))
 
-                    if len(stem) > 0:
-                        test_set_word_X.append(line)
-                        test_set_stem_X.append(stem)
-                        test_label.append(topic)
+        if return_text:
+            return train_set_line, valid_set_line, test_set_line, train_label, valid_label, test_label
 
-    # print(len(stem_set))
-    stem_to_idx_map = {stem: i for i, stem in enumerate(stem_set)}
-    idx_to_stem_map = {i: stem for stem, i in stem_to_idx_map.items()}
-    # print(stem_set)
+        X_train, y_train = self.embedding_from_text(train_set_line, train_label)
+        X_valid, y_valid = self.embedding_from_text(valid_set_line, valid_label)
+        X_test, y_test = self.embedding_from_text(test_set_line, test_label)
 
-    X_train = embeding_from_stem(stem_to_idx_map, train_set_stem_X)
-    X_valid = embeding_from_stem(stem_to_idx_map, valid_set_stem_X)
-    X_test = embeding_from_stem(stem_to_idx_map, test_set_stem_X)
+        assert (X_train.shape[0] == y_train.shape[0])
+        assert (X_valid.shape[0] == y_valid.shape[0])
+        assert (X_test.shape[0] == y_test.shape[0])
 
-    le = LabelEncoder()
-    le.fit(train_label)
+        return X_train, X_valid, X_test, y_train, y_valid, y_test
 
-    y_train = le.transform(train_label)
-    y_valid = le.transform(valid_label)
-    y_test = le.transform(test_label)
+    def embedding_from_text(self, X, y=None):
+        X_stem = [get_stem_tokens(text) for text in X]
+        return embeding_from_stem(self.stem_to_idx_map, X_stem) if y is None else (
+            embeding_from_stem(self.stem_to_idx_map, X_stem), self.le.transform(y))
 
-    assert (X_train.shape[0] == y_train.shape[0])
-    assert (X_valid.shape[0] == y_valid.shape[0])
-    assert (X_test.shape[0] == y_test.shape[0])
+    def embedding_from_stem(self, X, y=None):
+        return embeding_from_stem(self.stem_to_idx_map, X) if y is None else (
+            embeding_from_stem(self.stem_to_idx_map, X), self.le.transform(y))
 
-    mapping = dict(zip(le.classes_, range(len(le.classes_))))
-
-    return X_train, X_valid, X_test, y_train, y_valid, y_test, mapping
+    def class_label(self, class_id):
+        return self.mapping[class_id]
