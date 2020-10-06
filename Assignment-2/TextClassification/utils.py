@@ -50,8 +50,20 @@ def embeding_from_stem(vocab_map, list_stems, ignore_unk=True, normalize=False):
     return embeddings
 
 
-class Transformer:
+class TextTransformer:
     @staticmethod
     def to_stem_count_vector(text, vocab_map):
         stems = [get_stem_tokens(t) for t in text]
         return embeding_from_stem(vocab_map, stems)
+
+
+def tf(X):
+    return X / X.sum(axis=1, keepdims=True)
+
+
+def idf(X, alpha=0, beta=0):
+    return np.log((X.shape[0] + alpha) / ((X > 0).sum(axis=0) + beta))
+
+
+def tf_idf(X, alpha=0, beta=0):
+    return tf(X) * idf(X, alpha, beta)

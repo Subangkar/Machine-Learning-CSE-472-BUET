@@ -8,7 +8,11 @@ class Knn:
         self.X_train = None
         self.y_train = None
         self.K = n_neighbors
-        self.metric = metric
+
+        if metric == 'cosine':
+            self.metric = Knn.__neg_cosine_sim
+        else:
+            self.metric = metric
 
     def fit(self, X, y):
         self.X_train = X
@@ -24,3 +28,7 @@ class Knn:
     def score(self, X, y) -> float:
         y_pred = self.predict(X)
         return (y == y_pred).mean()
+
+    @staticmethod
+    def __neg_cosine_sim(v1, v2):
+        return -np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2))

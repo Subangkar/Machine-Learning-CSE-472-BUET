@@ -6,6 +6,7 @@ nltk.download('wordnet')
 
 # %%
 from dataset import generate_dataset
+from utils import tf_idf
 
 # %%
 from models.naivebayes import NaiveBayes
@@ -76,7 +77,28 @@ clf.fit(X_train, y_train)
 clf.evaluationStats(X_train=X_train, y_train=y_train, X_valid=X_valid, y_valid=y_valid, X_test=X_test, y_test=y_test)
 
 # %%
-nb = Knn(n_neighbors=3, metric='hamming')
-clf = TextClassifier(nb)
-clf.fit(X_train, y_train)
-clf.evaluationStats(X_train=X_train, y_train=y_train, X_valid=X_valid, y_valid=y_valid, X_test=X_test, y_test=y_test)
+X_train_ = X_train
+X_valid_ = X_valid
+X_test_ = X_test
+
+clf = TextClassifier(Knn(n_neighbors=3, metric='euclidean'))
+clf.fit(X_train_, y_train)
+clf.evaluationStats(X_train=X_train_, y_train=y_train, X_valid=X_valid_, y_valid=y_valid, X_test=X_test_, y_test=y_test)
+
+# %%
+X_train_ = (X_train > 0).astype('float')
+X_valid_ = (X_valid > 0).astype('float')
+X_test_ = (X_test > 0).astype('float')
+
+clf = TextClassifier(Knn(n_neighbors=3, metric='hamming'))
+clf.fit(X_train_, y_train)
+clf.evaluationStats(X_train=X_train_, y_train=y_train, X_valid=X_valid_, y_valid=y_valid, X_test=X_test_, y_test=y_test)
+
+# %%
+X_train_ = tf_idf(X_train, alpha=1e-6, beta=1e-9)
+X_valid_ = tf_idf(X_valid, alpha=1e-6, beta=1e-9)
+X_test_ = tf_idf(X_test, alpha=1e-6, beta=1e-9)
+
+clf = TextClassifier(Knn(n_neighbors=3, metric='cosine'))
+clf.fit(X_train_, y_train)
+clf.evaluationStats(X_train=X_train_, y_train=y_train, X_valid=X_valid_, y_valid=y_valid, X_test=X_test_, y_test=y_test)
