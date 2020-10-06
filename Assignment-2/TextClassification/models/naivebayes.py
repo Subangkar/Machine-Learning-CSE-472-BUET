@@ -14,7 +14,7 @@ class NaiveBayes:
         self.vocab_size = X.shape[1]
         self.classes = np.unique(y)
         # self.class_priors = {k: (y == k).sum() / len(y) for k in self.classes}
-        self.class_priors = np.array([(y == k).sum() / len(y) for k in self.classes])
+        self.class_priors = np.array([(y == k).mean() for k in self.classes])
         self.class_word_count = np.zeros((len(self.classes), self.vocab_size))  # K,V
         for k in self.classes:
             indices = np.where(y == k)[0]
@@ -38,4 +38,4 @@ class NaiveBayes:
 
     def score(self, X, y) -> float:
         y_pred = self.predict(X)
-        return (y == y_pred).sum() / len(y)
+        return (y == y_pred).mean()

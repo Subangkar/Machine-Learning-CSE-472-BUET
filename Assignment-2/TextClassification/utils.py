@@ -46,7 +46,12 @@ def embeding_from_stem(vocab_map, list_stems, ignore_unk=True, normalize=False):
             if ignore_unk and s not in vocab_map.keys():
                 continue
             embed[vocab_map[s]] += 1
-        # if normalize and len(list_stems[i])>0:
-        #     embed /= len(list_stems[i])
 
     return embeddings
+
+
+class Transformer:
+    @staticmethod
+    def to_stem_count_vector(text, vocab_map):
+        stems = [get_stem_tokens(t) for t in text]
+        return embeding_from_stem(vocab_map, stems)

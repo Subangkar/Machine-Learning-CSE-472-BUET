@@ -60,9 +60,23 @@ clf.fit(X_train, y_train)
 clf.evaluationStats(X_train=X_train, y_train=y_train, X_valid=X_valid, y_valid=y_valid, X_test=X_test, y_test=y_test)
 
 # %%
-from sklearn.naive_bayes import GaussianNB
+from sklearn.naive_bayes import MultinomialNB
 
-nb = GaussianNB()
+nb = MultinomialNB()
+clf = TextClassifier(nb)
+clf.fit(X_train, y_train)
+clf.evaluationStats(X_train=X_train, y_train=y_train, X_valid=X_valid, y_valid=y_valid, X_test=X_test, y_test=y_test)
+
+# %%
+from sklearn.neighbors import KNeighborsClassifier
+
+nb = KNeighborsClassifier(n_neighbors=3, metric='euclidean')
+clf = TextClassifier(nb)
+clf.fit(X_train, y_train)
+clf.evaluationStats(X_train=X_train, y_train=y_train, X_valid=X_valid, y_valid=y_valid, X_test=X_test, y_test=y_test)
+
+# %%
+nb = Knn(n_neighbors=3, metric='hamming')
 clf = TextClassifier(nb)
 clf.fit(X_train, y_train)
 clf.evaluationStats(X_train=X_train, y_train=y_train, X_valid=X_valid, y_valid=y_valid, X_test=X_test, y_test=y_test)
