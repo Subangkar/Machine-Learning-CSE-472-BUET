@@ -8,11 +8,7 @@ class Knn:
         self.X_train = None
         self.y_train = None
         self.K = n_neighbors
-
-        if metric == 'cosine':
-            self.metric = Knn.__neg_cosine_sim
-        else:
-            self.metric = metric
+        self.metric = Knn.dist_func(metric)
 
     def fit(self, X, y):
         self.X_train = X
@@ -30,5 +26,10 @@ class Knn:
         return (y == y_pred).mean()
 
     @staticmethod
-    def __neg_cosine_sim(v1, v2):
-        return -np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2))
+    def dist_func(metric):
+        _dist_function = {
+            'cosine': lambda v1, v2: -np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2)),
+            'hamming': lambda v1, v2: np.count_nonzero(v1 != v2),
+            'euclidean': lambda v1, v2: np.linalg.norm(v1 - v2),
+        }
+        return _dist_function[metric]

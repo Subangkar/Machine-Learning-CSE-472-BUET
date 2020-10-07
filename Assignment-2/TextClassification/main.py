@@ -51,7 +51,8 @@ class TextClassifier:
 from dataset import TextDataSet
 
 textds = TextDataSet(data_path='data/')
-X_train, X_valid, X_test, y_train, y_valid, y_test = textds.generate_text_dataset(train_size=500, valid_size=200,
+X_train, X_valid, X_test, y_train, y_valid, y_test = textds.generate_text_dataset(train_size=500,
+                                                                                  valid_size=200,
                                                                                   test_size=500)
 
 print(X_train.shape, y_train.shape)
@@ -61,50 +62,60 @@ print(X_test.shape, y_test.shape)
 # print(textds.embedding_from_text(['I love coffee']).shape)
 
 # %%
-nb = NaiveBayes(smoothing_factor=1e-3)
-clf = TextClassifier(nb)
+clf = TextClassifier(NaiveBayes(smoothing_factor=1e-3))
 clf.fit(X_train, y_train)
 clf.evaluationStats(X_train=X_train, y_train=y_train, X_valid=X_valid, y_valid=y_valid, X_test=X_test, y_test=y_test)
 
 # %%
 from sklearn.naive_bayes import MultinomialNB
 
-nb = MultinomialNB()
-clf = TextClassifier(nb)
+clf = TextClassifier(MultinomialNB())
 clf.fit(X_train, y_train)
 clf.evaluationStats(X_train=X_train, y_train=y_train, X_valid=X_valid, y_valid=y_valid, X_test=X_test, y_test=y_test)
+
+# %%
+knn_ds = {
+    'hamming': ((X_train > 0).astype('float'), (X_valid > 0).astype('float')),
+    'euclidean': (X_train, X_valid),
+    'cosine': (tf_idf(X_train, alpha=1e-6, beta=1e-9), tf_idf(X_valid, alpha=1e-6, beta=1e-9)),
+}
+
+best_acc = 0
+best_metric = None
+best_k = 0
+for metric, (X_train_, X_valid_) in knn_ds.items():
+    # X_train_, X_valid_ = knn_ds[metric]
+    for k in [1, 3, 5]:
+        clf = TextClassifier(Knn(n_neighbors=k, metric=metric))
+        clf.fit(X_train_, y_train)
+        acc = clf.score(X_valid_, y_valid)
+        print(metric, k, round(acc * 100, 2), sep=', ')
+
+        if acc > best_acc:
+            best_acc = acc
+            best_metric = metric
+            best_k = k
+print(best_metric, best_k, round(best_acc * 100, 2), sep=', ')
 
 # %%
 from sklearn.neighbors import KNeighborsClassifier
 
-nb = KNeighborsClassifier(n_neighbors=3, metric='euclidean')
-clf = TextClassifier(nb)
-clf.fit(X_train, y_train)
-clf.evaluationStats(X_train=X_train, y_train=y_train, X_valid=X_valid, y_valid=y_valid, X_test=X_test, y_test=y_test)
+clf = TextClassifier(KNeighborsClassifier(n_neighbors=5, metric=Knn.dist_func('euclidean')))
+clf.fit(tf_idf(X_train, alpha=1e-6, beta=1e-9), y_train)
+acc = clf.score(tf_idf(X_valid, alpha=1e-6, beta=1e-9), y_valid)
+print('scikit', 'cosine', 'k=5', round(acc * 100, 2), sep=', ')
 
 # %%
-X_train_ = X_train
-X_valid_ = X_valid
-X_test_ = X_test
+import numpy as np
 
-clf = TextClassifier(Knn(n_neighbors=3, metric='euclidean'))
-clf.fit(X_train_, y_train)
-clf.evaluationStats(X_train=X_train_, y_train=y_train, X_valid=X_valid_, y_valid=y_valid, X_test=X_test_, y_test=y_test)
-
-# %%
-X_train_ = (X_train > 0).astype('float')
-X_valid_ = (X_valid > 0).astype('float')
-X_test_ = (X_test > 0).astype('float')
-
-clf = TextClassifier(Knn(n_neighbors=3, metric='hamming'))
-clf.fit(X_train_, y_train)
-clf.evaluationStats(X_train=X_train_, y_train=y_train, X_valid=X_valid_, y_valid=y_valid, X_test=X_test_, y_test=y_test)
-
-# %%
-X_train_ = tf_idf(X_train, alpha=1e-6, beta=1e-9)
-X_valid_ = tf_idf(X_valid, alpha=1e-6, beta=1e-9)
-X_test_ = tf_idf(X_test, alpha=1e-6, beta=1e-9)
-
-clf = TextClassifier(Knn(n_neighbors=3, metric='cosine'))
-clf.fit(X_train_, y_train)
-clf.evaluationStats(X_train=X_train_, y_train=y_train, X_valid=X_valid_, y_valid=y_valid, X_test=X_test_, y_test=y_test)
+best_acc = 0
+best_smoothing_factor = 0
+for s in np.random.uniform(0, 1, 10):
+    clf = TextClassifier(NaiveBayes(smoothing_factor=s))
+    clf.fit(X_train, y_train)
+    acc = clf.score(X_valid, y_valid)
+    print('smoothing factor', s, round(acc * 100, 2), sep=', ')
+    if acc > best_acc:
+        best_acc = acc
+        best_smoothing_factor = s
+print('best_smoothing_factor', best_smoothing_factor, round(best_acc * 100, 2), sep=', ')
