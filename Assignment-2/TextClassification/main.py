@@ -111,6 +111,7 @@ import numpy as np
 best_acc = 0
 best_smoothing_factor = 0
 for s in np.random.uniform(0, 1, 10):
+    s = round(s, 4)
     clf = TextClassifier(NaiveBayes(smoothing_factor=s))
     clf.fit(X_train, y_train)
     acc = clf.score(X_valid, y_valid)
@@ -119,3 +120,27 @@ for s in np.random.uniform(0, 1, 10):
         best_acc = acc
         best_smoothing_factor = s
 print('best_smoothing_factor', best_smoothing_factor, round(best_acc * 100, 2), sep=', ')
+# %%
+kn = TextClassifier(Knn(n_neighbors=5, metric='cosine'))
+kn.fit(tf_idf(X_train, alpha=1e-6, beta=1e-9), y_train)
+nb = TextClassifier(NaiveBayes(smoothing_factor=0.0026))
+nb.fit(X_train, y_train)
+
+X_test_ = tf_idf(X_test, alpha=1e-6, beta=1e-9)
+
+stat = []
+print('Iter', 'KNN', 'Naive Bayes', sep=', ')
+
+for b in range(50):
+    st = b * 10
+    en = b * 10 + 10
+
+    X = X_test[st:en, :]
+    X_ = X_test_[st:en, :]
+    y = y_test[st:en]
+
+    acc_nb = nb.score(X, y)
+    acc_kn = kn.score(X_, y)
+
+    print(b + 1, round(acc_kn * 100, 2), round(acc_nb * 100, 2), sep=', ')
+    stat.append((b + 1, acc_kn, acc_nb))
