@@ -16,7 +16,7 @@ class Knn:
 
     def predict(self, X):
         dist = pairwise_distances(X, self.X_train, metric=self.metric)
-        indices = np.argsort(dist, axis=1)[:, :self.K]
+        indices = np.argpartition(dist, kth=self.K - 1, axis=1)[:, :self.K]
         y_top = self.y_train[indices]
         y_pred = mode(y_top, axis=1)[0].flatten()
         return y_pred
@@ -28,8 +28,11 @@ class Knn:
     @staticmethod
     def dist_func(metric):
         _dist_function = {
-            'cosine': lambda v1, v2: -np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2)),
-            'hamming': lambda v1, v2: np.count_nonzero(v1 != v2),
-            'euclidean': lambda v1, v2: np.linalg.norm(v1 - v2),
+            # 'cosine': lambda v1, v2: -np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2)),
+            'cosine': 'cosine',
+            # 'hamming': lambda v1, v2: np.count_nonzero(v1 != v2),
+            'hamming': 'hamming',
+            # 'euclidean': lambda v1, v2: np.linalg.norm(v1 - v2),
+            'euclidean': 'euclidean',
         }
         return _dist_function[metric]

@@ -62,11 +62,6 @@ print(X_test.shape, y_test.shape)
 # print(textds.embedding_from_text(['I love coffee']).shape)
 
 # %%
-clf = TextClassifier(NaiveBayes(smoothing_factor=1e-3))
-clf.fit(X_train, y_train)
-clf.evaluationStats(X_train=X_train, y_train=y_train, X_valid=X_valid, y_valid=y_valid, X_test=X_test, y_test=y_test)
-
-# %%
 from sklearn.naive_bayes import MultinomialNB
 
 clf = TextClassifier(MultinomialNB())

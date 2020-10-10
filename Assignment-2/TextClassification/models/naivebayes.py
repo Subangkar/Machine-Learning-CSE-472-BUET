@@ -24,7 +24,7 @@ class NaiveBayes:
                 self.class_word_count.sum(axis=0, keepdims=True) + self.smoothing_factor * self.vocab_size)
 
     def predict(self, X, return_probs=False):
-        y_pred = np.zeros(X.shape[0])
+        y_pred = np.zeros(X.shape[0], dtype=int)
         y_prob = np.zeros((X.shape[0], len(self.classes))) if return_probs else None
 
         for i, x in enumerate(X):
