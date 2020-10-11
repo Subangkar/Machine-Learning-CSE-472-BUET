@@ -72,7 +72,6 @@ best_acc = 0
 best_metric = None
 best_k = 0
 for metric, (X_train_, X_valid_) in knn_ds.items():
-    # X_train_, X_valid_ = knn_ds[metric]
     for k in [1, 3, 5]:
         clf = TextClassifier(Knn(n_neighbors=k, metric=metric))
         clf.fit(X_train_, y_train)
@@ -115,6 +114,8 @@ clf.fit(X_train, y_train)
 clf.evaluationStats(X_train=X_train, y_train=y_train, X_valid=X_valid, y_valid=y_valid, X_test=X_test, y_test=y_test)
 
 # %%
+import math
+
 kn = TextClassifier(Knn(n_neighbors=5, metric='cosine'))
 kn.fit(tf_idf(X_train, alpha=1e-6, beta=1e-9), y_train)
 nb = TextClassifier(NaiveBayes(smoothing_factor=1e-3))
@@ -126,12 +127,24 @@ stat = []
 print('Iter', 'KNN', 'Naive Bayes', sep=', ')
 
 for b in range(50):
-    st = b * 10
-    en = b * 10 + 10
+    X = []
+    X_ = []
+    y = []
 
-    X = X_test[st:en, :]
-    X_ = X_test_[st:en, :]
-    y = y_test[st:en]
+    for d in range(int(math.ceil(len(y_test) / 500))):
+        st = d * 500 + b * 10
+        en = min(d * 500 + b * 10 + 10, len(y_test))
+
+        if st >= en:
+            break
+
+        X.append(X_test[st:en, :])
+        X_.append(X_test_[st:en, :])
+        y.append(y_test[st:en])
+
+    X = np.concatenate(X)
+    X_ = np.concatenate(X_)
+    y = np.concatenate(y)
 
     acc_nb = nb.score(X, y)
     acc_kn = kn.score(X_, y)
