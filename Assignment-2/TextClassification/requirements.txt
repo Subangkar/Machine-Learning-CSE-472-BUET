@@ -1,3 +1,5 @@
 numpy
 nltk
 bs4
+scikit-learn
+sklearn

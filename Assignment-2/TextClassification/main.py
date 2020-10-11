@@ -62,13 +62,6 @@ print(X_test.shape, y_test.shape)
 # print(textds.embedding_from_text(['I love coffee']).shape)
 
 # %%
-from sklearn.naive_bayes import MultinomialNB
-
-clf = TextClassifier(MultinomialNB())
-clf.fit(X_train, y_train)
-clf.evaluationStats(X_train=X_train, y_train=y_train, X_valid=X_valid, y_valid=y_valid, X_test=X_test, y_test=y_test)
-
-# %%
 knn_ds = {
     'hamming': ((X_train > 0).astype('float'), (X_valid > 0).astype('float')),
     'euclidean': (X_train, X_valid),
@@ -95,7 +88,7 @@ print(best_metric, best_k, round(best_acc * 100, 2), sep=', ')
 # %%
 from sklearn.neighbors import KNeighborsClassifier
 
-clf = TextClassifier(KNeighborsClassifier(n_neighbors=5, metric=Knn.dist_func('euclidean')))
+clf = TextClassifier(KNeighborsClassifier(n_neighbors=5, metric='cosine'))
 clf.fit(tf_idf(X_train, alpha=1e-6, beta=1e-9), y_train)
 acc = clf.score(tf_idf(X_valid, alpha=1e-6, beta=1e-9), y_valid)
 print('scikit', 'cosine', 'k=5', round(acc * 100, 2), sep=', ')
@@ -105,8 +98,7 @@ import numpy as np
 
 best_acc = 0
 best_smoothing_factor = 0
-for s in np.random.uniform(0, 1, 10):
-    s = round(s, 4)
+for s in [1e-0, 1e-1, 1e-2, 1e-3, 1e-4, 1e-5, 1e-6, 1e-7, 1e-8, 1e-9]:
     clf = TextClassifier(NaiveBayes(smoothing_factor=s))
     clf.fit(X_train, y_train)
     acc = clf.score(X_valid, y_valid)
@@ -116,9 +108,16 @@ for s in np.random.uniform(0, 1, 10):
         best_smoothing_factor = s
 print('best_smoothing_factor', best_smoothing_factor, round(best_acc * 100, 2), sep=', ')
 # %%
+from sklearn.naive_bayes import MultinomialNB
+
+clf = TextClassifier(MultinomialNB())
+clf.fit(X_train, y_train)
+clf.evaluationStats(X_train=X_train, y_train=y_train, X_valid=X_valid, y_valid=y_valid, X_test=X_test, y_test=y_test)
+
+# %%
 kn = TextClassifier(Knn(n_neighbors=5, metric='cosine'))
 kn.fit(tf_idf(X_train, alpha=1e-6, beta=1e-9), y_train)
-nb = TextClassifier(NaiveBayes(smoothing_factor=0.0026))
+nb = TextClassifier(NaiveBayes(smoothing_factor=1e-3))
 nb.fit(X_train, y_train)
 
 X_test_ = tf_idf(X_test, alpha=1e-6, beta=1e-9)
@@ -139,3 +138,4 @@ for b in range(50):
 
     print(b + 1, round(acc_kn * 100, 2), round(acc_nb * 100, 2), sep=', ')
     stat.append((b + 1, acc_kn, acc_nb))
+print('Overall', round(np.mean([a[1] for a in stat]) * 100, 2), round(np.mean([a[2] for a in stat]) * 100, 2), sep=', ')
