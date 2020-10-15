@@ -152,3 +152,22 @@ for b in range(50):
     print(b + 1, round(acc_kn * 100, 2), round(acc_nb * 100, 2), sep=', ')
     stat.append((b + 1, acc_kn, acc_nb))
 print('Overall', round(np.mean([a[1] for a in stat]) * 100, 2), round(np.mean([a[2] for a in stat]) * 100, 2), sep=', ')
+
+# %%
+from scipy import stats
+
+kns=np.array([a[1] for a in stat])
+nbs=np.array([a[2] for a in stat])
+
+stats.ttest_rel(kns, nbs)
+
+# %%
+nb = TextClassifier(NaiveBayes(smoothing_factor=0.0026))
+nb.fit(X_train, y_train)
+
+# %%
+textds.class_label(nb.predict(
+                    textds.embedding_from_text(['I love working with hardware',
+                                                'Coffee is bad for health',
+                                                'animes are deployable in adruino'])))
+# textds.embedding_from_text(['I love coffee'])
