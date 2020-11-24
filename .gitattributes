@@ -1,0 +1,7 @@
+**/data/**/ filter=lfs diff=lfs merge=lfs -text
+*.csv filter=lfs diff=lfs merge=lfs -text
+Assignment-1/Adaboost/data/adult/ filter=lfs diff=lfs merge=lfs -text
+Assignment-1/Adaboost/data/adult/adult.data filter=lfs diff=lfs merge=lfs -text
+Assignment-1/Adaboost/data/adult/adult.names filter=lfs diff=lfs merge=lfs -text
+Assignment-1/Adaboost/data/adult/adult.test filter=lfs diff=lfs merge=lfs -text
+Assignment-1/Adaboost/data/adult/Index filter=lfs diff=lfs merge=lfs -text
