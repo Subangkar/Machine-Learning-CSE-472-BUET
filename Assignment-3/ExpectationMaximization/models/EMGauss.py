@@ -6,6 +6,26 @@ from scipy.stats import multivariate_normal
 from models.PCA import covariance_matrix
 
 
+def multivariate_gaussian(X, mean, cov):  # (N,D) (D,) (D,D)
+
+    mu = mean
+    sigma = cov
+
+    if X.shape[1] != mu.shape[0] or (X.shape[1], X.shape[1]) != sigma.shape:
+        raise ValueError("The dimensions of the input don't match")
+    if np.linalg.det(sigma) == 0:
+        raise ValueError("The covariance matrix can't be singular")
+
+    D = len(mu)
+    # sigma2 = sigma #np.diag(sigma)
+    X = X - mu
+    p = (1 / np.sqrt(((2 * np.pi) ** D) * np.linalg.det(sigma))) * np.exp(
+        -0.5 * np.sum(X.dot(np.linalg.pinv(sigma)) * X,
+                      axis=1))
+
+    return p
+
+
 class EMGauss:
     def __init__(self, n_components=2, n_iterations=30, eps=1e-9, init=None, early_stop=True):
         self.K = n_components
@@ -23,7 +43,7 @@ class EMGauss:
         self.X = None
         self.likelihood = None
 
-    def fit(self, X, verbose=False):
+    def fit(self, X, verbose=False, verbose_freq=5):
         self.X = X
 
         ## initialization
@@ -33,7 +53,7 @@ class EMGauss:
         else:
             self.mu = X[np.random.choice(X.shape[0], size=self.K, replace=False),
                       :]  # np.random.randn(self.K, X.shape[1])
-            self.sigma = [np.cov(X.T)] * self.K  # np.random.randn(self.K, X.shape[1], X.shape[1])
+            self.sigma = [covariance_matrix(X)] * self.K  # np.random.randn(self.K, X.shape[1], X.shape[1])
             self.w = np.ones((self.K)) / self.K
 
         self.p = np.ones(shape=(X.shape[0], self.K))  ## N, K
@@ -42,7 +62,7 @@ class EMGauss:
             likelihood = self.likelihood
             self.likelihood = self.__lg_likelihood()
 
-            if verbose:
+            if verbose and j % verbose_freq == 0:
                 print('iteration:', j, 'likelihood:', self.likelihood, 'w:', self.w)  # , 'mu:', self.mu
 
             if self.early_stop and likelihood is not None and (
@@ -52,6 +72,8 @@ class EMGauss:
 
             self.__e_step()
             self.__m_step()
+
+        print('Final:', 'likelihood:', self.likelihood, 'w:', self.w)  # , 'mu:', self.mu
 
     def __e_step(self):
         for k in range(self.K):
@@ -78,7 +100,7 @@ class EMGauss:
 
     def print_parameters(self):
         for k in range(self.K):
-            print('Dist:', k, 'Ratio:', self.w[k])
+            print('Cluster:', k, 'Ratio:', self.w[k])
             print('mu_%d:' % k, self.mu[k])
             print('sigma_%d:' % k, self.sigma[k])
             print()
@@ -94,11 +116,12 @@ class EMGauss:
 
     @staticmethod
     def _dist(X, **kwargs):
-        return multivariate_normal.pdf(X, mean=kwargs['mu'], cov=kwargs['sigma'])
+        # return multivariate_normal.pdf(X, mean=kwargs['mu'], cov=kwargs['sigma'])
+        return multivariate_gaussian(X, mean=kwargs['mu'], cov=kwargs['sigma'])
 
     @staticmethod
     def kmeans_mean_cov_init(X, n_clusters=2):
-        kmeans = KMeans(n_clusters=n_clusters, init="k-means++", max_iter=500, algorithm='auto')
+        kmeans = KMeans(n_clusters=n_clusters, init="k-means++", max_iter=100, algorithm='auto')
         fitted = kmeans.fit(X)
         prediction = kmeans.predict(X)
 
