@@ -5,9 +5,10 @@ Assignment-1/Adaboost/data/adult/adult.data filter=lfs diff=lfs merge=lfs -text
 Assignment-1/Adaboost/data/adult/adult.names filter=lfs diff=lfs merge=lfs -text
 Assignment-1/Adaboost/data/adult/adult.test filter=lfs diff=lfs merge=lfs -text
 Assignment-1/Adaboost/data/adult/Index filter=lfs diff=lfs merge=lfs -text
-
 **/data/**/ filter=lfs diff=lfs merge=lfs -text
-
 **/data/*.csv filter=lfs diff=lfs merge=lfs -text
 **/data/*.xml filter=lfs diff=lfs merge=lfs -text
 **/data/*.txt filter=lfs diff=lfs merge=lfs -text
+
+Assignment-3/ExpectationMaximization/data/** filter=lfs diff=lfs merge=lfs -text
+Assignment-3/ExpectationMaximization/data/data.txt filter=lfs diff=lfs merge=lfs -text
