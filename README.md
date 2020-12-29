@@ -11,7 +11,7 @@ This repo contains LAB assignments and contents of Machine Learning Sessional co
 - Text Classification - Assignment 2:
     - k Nearest Neighbor (KNN)
     - Naive Bayes 
-        - [Stack Exchange Question & Answer dataset](Assignment-2/TextClassification/data)    
+        - [Stack Exchange Question & Answer dataset](https://drive.google.com/drive/folders/17yNw_K8f5oAW--KM74NPjGs8qzbEbZfm?usp=sharing)    
 - Dimentionality Reduction & Clustering - Assignment 3:
     - Principal Component Analysis (PCA)
     - Expectation Maximization Algorithm (EM)    
