@@ -1,4 +1,4 @@
-# Machine Learning Sessional
+# Machine-Learning-Sessional-CSE-472-BUET
 This repo contains LAB assignments and contents of Machine Learning Sessional course, CSE 472 in Level-4, Term-2 of January-2020 session of CSE, BUET
   
 **Course Contents:**
@@ -16,4 +16,8 @@ This repo contains LAB assignments and contents of Machine Learning Sessional co
     - Principal Component Analysis (PCA)
     - Expectation Maximization Algorithm (EM)    
         - [10-D coordinate dataset](Assignment-3/ExpectationMaximization/data)
-    
+- Deep Learning Project:
+    - Speech captioning from Image
+        - [Single line Image Captioning using Attention](https://github.com/Subangkar/Image-Captioning-Attention-PyTorch) 
+            - [Flickr8k Image Captioning Dataset](https://forms.illinois.edu/sec/1713398)
+        - Text to Speech Generation using Pre-trained [Tacotron 2](https://pytorch.org/hub/nvidia_deeplearningexamples_tacotron2/)
